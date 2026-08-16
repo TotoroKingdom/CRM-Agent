@@ -1,3 +1,4 @@
+import { Folder, Pencil } from 'lucide-react';
 import styles from './WorkspaceList.module.css';
 
 export type WorkspaceListItem = {
@@ -44,19 +45,29 @@ export function WorkspaceList({
             data-availability={item.availability}
             key={item.id}
           >
-            <div className={styles.details}>
-              <span className={styles.name}>{item.name}</span>
-              <span aria-label={`根路径：${item.root_path}`} className={styles.path} title={item.root_path}>{item.root_path}</span>
+            <button
+              aria-label={availability.action === 'open' ? `打开 ${item.name}` : `重新检查并打开 ${item.name}`}
+              className={styles.openButton}
+              disabled={pending}
+              onClick={() => (availability.action === 'open' ? onOpen(item.id) : onRecheck(item.id))}
+              type="button"
+            >
+              <Folder aria-hidden="true" className={styles.folderIcon} />
+              <span className={styles.details}>
+                <span className={styles.name}>{item.name}</span>
+                <span aria-label={`根路径：${item.root_path}`} className={styles.path} title={item.root_path}>{item.root_path}</span>
+              </span>
               <span className={styles.availability} role="status">状态：{availability.label}</span>
-            </div>
-            <div className={styles.actions}>
-              {availability.action === 'open' ? (
-                <button disabled={pending} onClick={() => onOpen(item.id)} type="button">打开 {item.name}</button>
-              ) : (
-                <button disabled={pending} onClick={() => onRecheck(item.id)} type="button">重新检查并打开 {item.name}</button>
-              )}
-              <button disabled={pending} onClick={() => onRename(item.id)} type="button">重命名 {item.name}</button>
-            </div>
+            </button>
+            <button
+              aria-label={`重命名 ${item.name}`}
+              className={styles.renameButton}
+              disabled={pending}
+              onClick={() => onRename(item.id)}
+              type="button"
+            >
+              <Pencil aria-hidden="true" />
+            </button>
           </li>
         );
       })}

@@ -63,16 +63,6 @@ export function WorkspaceCollection({
 
   return (
     <section aria-label="工作区集合" className={styles.collection} data-collection-status={collectionStatus}>
-      <div className={styles.header}>
-        <div>
-          <h2>工作区</h2>
-          <p>本机项目目录</p>
-        </div>
-        <div className={styles.headerActions}>
-          <button disabled={pending} onClick={onRefresh} type="button">刷新工作区</button>
-          <button disabled={pending} onClick={onAdd} type="button">添加工作区</button>
-        </div>
-      </div>
       {collectionStatus === 'loading' && <p role="status">正在加载工作区…</p>}
       {collectionStatus === 'idle' && <p className={styles.muted} role="status">等待后端连接后加载工作区。</p>}
       {showCollectionError && (
@@ -85,8 +75,8 @@ export function WorkspaceCollection({
       {operationMessage && <p className={styles.operationError} role="alert">{operationMessage}</p>}
       {showEmpty && (
         <div className={styles.empty}>
-          <p>尚未添加工作区。输入或粘贴绝对路径开始。</p>
-          <button disabled={pending} onClick={onAdd} type="button">添加第一个工作区</button>
+          <p>尚未创建项目。</p>
+          <button disabled={pending} onClick={onAdd} type="button">创建第一个项目</button>
         </div>
       )}
       {items.length > 0 && (

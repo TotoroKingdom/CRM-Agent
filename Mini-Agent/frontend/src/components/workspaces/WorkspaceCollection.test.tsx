@@ -63,8 +63,8 @@ describe('WorkspaceCollection', () => {
         onRetry={vi.fn()}
       />,
     );
-    expect(screen.getByText('尚未添加工作区。输入或粘贴绝对路径开始。')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '添加第一个工作区' })).toBeInTheDocument();
+    expect(screen.getByText('尚未创建项目。')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '创建第一个项目' })).toBeInTheDocument();
   });
 
   it('Collection Error 提供 Retry，且最近成功列表仍然可见', async () => {
@@ -78,7 +78,7 @@ describe('WorkspaceCollection', () => {
     expect(callbacks.onRetry).toHaveBeenCalledTimes(1);
   });
 
-  it('展示安全 Operation Error，并将 Add、Refresh 和列表意图交给回调', async () => {
+  it('展示安全 Operation Error，并将列表意图交给回调', async () => {
     const user = userEvent.setup();
     const callbacks = renderCollection({
       items: [available],
@@ -86,13 +86,9 @@ describe('WorkspaceCollection', () => {
     });
 
     expect(screen.getByRole('alert')).toHaveTextContent('该目录已经添加为工作区。');
-    await user.click(screen.getByRole('button', { name: '添加工作区' }));
-    await user.click(screen.getByRole('button', { name: '刷新工作区' }));
     await user.click(screen.getByRole('button', { name: '打开 Mini Agent' }));
     await user.click(screen.getByRole('button', { name: '重命名 Mini Agent' }));
 
-    expect(callbacks.onAdd).toHaveBeenCalledTimes(1);
-    expect(callbacks.onRefresh).toHaveBeenCalledTimes(1);
     expect(callbacks.onOpen).toHaveBeenCalledWith('workspace-1');
     expect(callbacks.onRename).toHaveBeenCalledWith('workspace-1');
   });
@@ -102,11 +98,7 @@ describe('WorkspaceCollection', () => {
     const callbacks = renderCollection({ items: [available], operation: 'opening' });
 
     expect(screen.getByText('Mini Agent')).toBeInTheDocument();
-    const add = screen.getByRole('button', { name: '添加工作区' });
-    const refresh = screen.getByRole('button', { name: '刷新工作区' });
     const open = screen.getByRole('button', { name: '打开 Mini Agent' });
-    expect(add).toBeDisabled();
-    expect(refresh).toBeDisabled();
     expect(open).toBeDisabled();
     await user.click(open);
     expect(callbacks.onOpen).not.toHaveBeenCalled();

@@ -131,7 +131,7 @@ describe('M03 regression', () => {
 
     const firstMount = render(<App />);
     await screen.findByRole('button', { name: '打开 可用项目' });
-    await user.click(screen.getByRole('button', { name: '添加工作区' }));
+    await user.click(screen.getByRole('button', { name: '创建项目' }));
     const form = screen.getByRole('form', { name: '添加工作区' });
     await user.type(within(form).getByRole('textbox', { name: '绝对工作区路径' }), 'C:\\workspace\\available');
     await user.click(within(form).getByRole('button', { name: '添加工作区' }));

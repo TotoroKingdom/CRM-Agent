@@ -74,7 +74,7 @@ describe('App workspace integration', () => {
     await user.click(screen.getByRole('button', { name: '打开 Alpha' }));
     await waitFor(() => expect(screen.getByText('Alpha').closest('li')).toHaveAttribute('aria-current', 'true'));
 
-    await user.click(screen.getByRole('button', { name: '添加工作区' }));
+    await user.click(screen.getByRole('button', { name: '创建项目' }));
     const addForm = screen.getByRole('form', { name: '添加工作区' });
     await user.type(within(addForm).getByRole('textbox', { name: '绝对工作区路径' }), 'C:\\work\\beta');
     await user.type(within(addForm).getByRole('textbox', { name: '显示名称（可选）' }), 'Beta');
@@ -122,6 +122,6 @@ describe('App workspace integration', () => {
 
     await user.click(screen.getByRole('button', { name: '切换侧边栏' }));
     await user.click(screen.getByRole('button', { name: '重试加载工作区' }));
-    expect(await screen.findByText('尚未添加工作区。输入或粘贴绝对路径开始。')).toBeInTheDocument();
+    expect(await screen.findByText('尚未创建项目。')).toBeInTheDocument();
   });
 });

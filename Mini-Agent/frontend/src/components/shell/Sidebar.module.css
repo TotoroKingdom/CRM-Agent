@@ -43,10 +43,31 @@
 
 .collectionScroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0 var(--space-2) var(--space-5); scrollbar-color: var(--border-strong) transparent; }
 .collection { margin-bottom: var(--space-5); }
-.workspaceProject { display: grid; gap: var(--space-2); margin-bottom: var(--space-5); }
-.workspaceProject > h2 { margin: 0; padding: 0 var(--space-2); color: var(--text-tertiary); font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold); }
+.workspaceProject { position: relative; display: grid; gap: var(--space-2); margin-bottom: var(--space-5); }
+.projectHeader { display: flex; align-items: center; min-height: 28px; padding: 0 var(--space-1); }
+.projectToggle { display: inline-flex; align-items: center; min-width: 0; gap: 2px; padding: var(--space-1); border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--text-tertiary); }
+.projectToggle:hover { background: var(--surface-hover); color: var(--text-primary); }
+.projectToggle:focus-visible, .projectHeaderActions button:focus-visible { outline: 2px solid var(--state-accent); outline-offset: 1px; }
+.projectToggle h2 { margin: 0; font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold); }
+.projectToggle svg { flex: 0 0 auto; transition: transform var(--motion-fast) ease; }
+.projectChevronExpanded { transform: rotate(90deg); }
+.projectHeaderActions { display: flex; gap: 2px; margin-left: auto; opacity: 0; transition: opacity var(--motion-fast) ease; }
+.workspaceProject:hover .projectHeaderActions, .workspaceProject:focus-within .projectHeaderActions { opacity: 1; }
+.projectMenuContainer { position: relative; }
+.projectMenu { position: absolute; z-index: 2; top: calc(100% + 4px); right: 0; display: grid; width: 142px; padding: var(--space-2); border: 1px solid var(--border-default); border-radius: var(--radius-md); background: var(--surface-raised); box-shadow: var(--shadow-lg); }
+.projectMenu p { margin: 0; padding: var(--space-1) var(--space-2); color: var(--text-tertiary); font-size: var(--font-size-xs); }
+.projectMenu button { padding: var(--space-2); border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--text-primary); text-align: left; font-size: var(--font-size-sm); }
+.projectMenu button:hover, .projectMenu button[aria-pressed="true"] { background: var(--surface-hover); }
+.projectMenu button[aria-pressed="true"]::before { content: '✓ '; }
+.projectContent { display: grid; gap: var(--space-3); }
+.projectConversations { display: grid; gap: 2px; padding-top: var(--space-1); }
+.projectConversations h3 { margin: 0; padding: 0 var(--space-2); color: var(--text-tertiary); font-size: var(--font-size-xs); font-weight: var(--font-weight-medium); }
 .collectionHeader { display: flex; align-items: center; min-height: 24px; margin: 0 0 var(--space-2); padding: 0 var(--space-2); }
 .collection h2 { margin: 0; color: var(--text-tertiary); font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold); }
+.collectionToggle { display: inline-flex; align-items: center; gap: 2px; padding: var(--space-1); border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--text-tertiary); }
+.collectionToggle:hover { background: var(--surface-hover); color: var(--text-primary); }
+.collectionToggle:focus-visible { outline: 2px solid var(--state-accent); outline-offset: 1px; }
+.collectionToggle svg { flex: 0 0 auto; transition: transform var(--motion-fast) ease; }
 .collectionActions { display: flex; gap: 2px; margin-left: auto; opacity: 0; transition: opacity var(--motion-fast) ease; }
 .collectionHeader:hover .collectionActions, .collectionHeader:focus-within .collectionActions { opacity: 1; }
 .collectionAction, .conversationMore { display: inline-grid; width: 24px; height: 24px; padding: 0; place-items: center; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--icon-secondary); }
