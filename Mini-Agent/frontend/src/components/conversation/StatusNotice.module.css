@@ -1,5 +1,0 @@
-.notice { display: flex; align-items: flex-start; gap: var(--space-3); width: 100%; margin: 0 0 var(--space-5); padding: var(--space-3) var(--space-4); border: 1px solid var(--border-default); border-radius: var(--radius-lg); background: var(--surface-subtle); color: var(--text-primary); }
-.notice strong { display: block; font-size: var(--font-size-sm); }
-.notice p { margin: var(--space-1) 0 0; color: var(--text-secondary); font-size: var(--font-size-sm); overflow-wrap: anywhere; }
-.notice svg { flex: 0 0 auto; margin-top: 2px; color: var(--icon-primary); }
-.runningIcon { color: var(--state-accent) !important; }
