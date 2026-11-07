@@ -20,6 +20,13 @@ def test_openapi_exposes_eight_compatible_paths_and_camel_case_models(
         "/health",
     }
     assert set(schema["paths"]["/api/leads"]["get"]["responses"]) >= {"200", "400"}
+    assert all(
+        "422" not in operation["responses"]
+        for path_item in schema["paths"].values()
+        for operation in path_item.values()
+        if isinstance(operation, dict)
+    )
+    assert "HTTPValidationError" not in schema["components"]["schemas"]
     lead_properties = schema["components"]["schemas"]["LeadResponse"]["properties"]
     assert {"dealCount", "openTaskCount", "createdAt", "updatedAt"} <= set(lead_properties)
     assert "leadId" in schema["components"]["schemas"]["DealResponse"]["properties"]

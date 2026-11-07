@@ -3,28 +3,38 @@ $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 $webDir = Join-Path $root "apps/web"
 $apiDir = Join-Path $root "apps/api"
-$logDir = Join-Path $root ".dev"
-$apiOut = Join-Path $logDir "api.out.log"
-$apiErr = Join-Path $logDir "api.err.log"
+$envFile = Join-Path $root ".env"
 
-New-Item -ItemType Directory -Force -Path $logDir | Out-Null
+if (Test-Path $envFile) {
+    foreach ($line in Get-Content $envFile) {
+        if ($line -match '^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$') {
+            $name = $matches[1]
+            $value = $matches[2].Trim().Trim('"').Trim("'")
+            if (-not (Test-Path "Env:$name")) { Set-Item "Env:$name" $value }
+        }
+    }
+}
+
+if (-not $env:CRM_DATABASE_PATH) {
+    $env:CRM_DATABASE_PATH = Join-Path $root "data/crm.sqlite"
+}
+if (-not $env:API_INTERNAL_URL) {
+    $env:API_INTERNAL_URL = "http://127.0.0.1:8000"
+}
+
 if (-not (Test-Path (Join-Path $webDir "node_modules"))) {
     Push-Location $webDir
     try { npm ci } finally { Pop-Location }
 }
-
-$env:CRM_DATABASE_PATH = Join-Path $root "data/crm.sqlite"
-$env:API_INTERNAL_URL = "http://127.0.0.1:8000"
-$api = Start-Process -FilePath "uv" `
-    -ArgumentList @("run", "--project", $apiDir, "uvicorn", "app.main:app", "--app-dir", $apiDir, "--host", "127.0.0.1", "--port", "8000") `
-    -WorkingDirectory $root -WindowStyle Hidden -PassThru `
-    -RedirectStandardOutput $apiOut -RedirectStandardError $apiErr
-
-try {
-    Write-Host "API: http://127.0.0.1:8000 (logs: $logDir)"
-    Write-Host "Web: http://127.0.0.1:3000"
-    Push-Location $webDir
-    try { npm run dev } finally { Pop-Location }
-} finally {
-    if (-not $api.HasExited) { Stop-Process -Id $api.Id }
+if (-not (Test-Path (Join-Path $apiDir ".venv"))) {
+    uv sync --project $apiDir --python 3.12
 }
+
+Push-Location $root
+try {
+    uv run --project $apiDir alembic -c (Join-Path $apiDir "alembic.ini") upgrade head
+} finally {
+    Pop-Location
+}
+
+uv run --project $apiDir python scripts/dev_runner.py

@@ -21,7 +21,7 @@ This repository is a small, local-only CRM with a Next.js web app and a FastAPI 
 - Never delete, overwrite, reset, or commit a user database. Migration commands operate on copies unless the user explicitly authorizes otherwise.
 - Do not auto-seed from application startup. Demo data is inserted only through the explicit idempotent seed command.
 - Run focused tests first. Run Next.js `test`, `typecheck`, and `build` serially because they share generated types.
-- Do not run Maven lifecycles; this repository has no Maven project.
+- Do not run Maven lifecycles; this repository has no Maven project. The default prohibition applies even if a generic build command is suggested.
 - Browser E2E, Computer Use, real external integrations, deployment, and production data migration require explicit authorization.
 
 ## Parallel Agents

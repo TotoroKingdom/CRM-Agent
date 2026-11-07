@@ -11,6 +11,18 @@ from app.main import app
 from app.models import Activity, Deal, FollowupTask, Lead  # noqa: F401
 
 
+@pytest.fixture(autouse=True)
+def fixed_api_clock(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        "app.services.crm.utc_now_iso",
+        lambda: "2026-11-07T10:00:00.000Z",
+    )
+    monkeypatch.setattr(
+        "app.services.crm.beijing_day_bounds",
+        lambda: ("2026-11-06T16:00:00.000Z", "2026-11-07T15:59:59.999Z"),
+    )
+
+
 @pytest.fixture
 def database_path(tmp_path: Path) -> Path:
     return tmp_path / "crm-test.sqlite"

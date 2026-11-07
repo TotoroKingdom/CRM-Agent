@@ -1,7 +1,19 @@
 # CRM HTTP API 契约
 
-状态：G0 基线，2026-11-07  
-真源：迁移完成后以 FastAPI 生成的 `/openapi.json` 为唯一机器可读契约；本文件记录兼容语义和不能由 OpenAPI 完整表达的行为。
+状态：G2 完成基线，2026-11-07
+真源：FastAPI 生成的 `/openapi.json`。本文件记录兼容语义和不能由 OpenAPI 完整表达的行为。
+
+## 生成与校验
+
+```powershell
+uv run --project apps/api python -m app.scripts.export_openapi
+npm --prefix apps/web run generate:api
+```
+
+- `apps/api/openapi.json`：后端导出的 OpenAPI 3.1。
+- `apps/web/src/generated/api.ts`：`openapi-typescript` 生成的 TypeScript 类型。
+- CI 重新生成两者并执行 `git diff --exit-code`，防止代码与契约漂移。
+- OpenAPI 不发布未使用的 FastAPI `422`/`HTTPValidationError`；运行时请求校验统一为 `400 + fields`。
 
 ## 通用约定
 

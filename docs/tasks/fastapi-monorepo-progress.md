@@ -12,7 +12,7 @@
 | G1 Monorepo 骨架与前端迁移 | PASS | Next 页面/资源无损迁移；FastAPI 健康检查通过 |
 | G2 FastAPI 完整替换 | PASS | 八组 API、Alembic、前端 client、类型生成与本机构建已验证 |
 | G3 数据保全、Seed 与业务闭环 | PASS | 旧库副本迁移、逐行校验、回滚、显式 Seed 和 API 闭环已实测 |
-| G4 规范、交付与 PR | PENDING | |
+| G4 规范、交付与 PR | IN_PROGRESS | 本地规范、CI 配置和启动验证完成；等待推送、PR 与远端 CI 结果 |
 
 状态含义：`PASS` 表示有本机实测证据；`PARTIAL` 表示部分路径未验证；`BLOCKED` 表示环境或权限阻塞；不得把未执行项目写成通过。
 
@@ -143,6 +143,53 @@ FastAPI 使用迁移后的 `data/crm.sqlite`，Next.js 以 `API_INTERNAL_URL=htt
 - 页面 `/`、`/leads`、`/pipeline`、`/tasks` 本地 HTTP 均为 `200`。
 
 未执行浏览器点击、Playwright、Computer Use；因此不宣称浏览器人工验收通过。
+
+## G4 证据
+
+### AI-Friendly 工程规范
+
+- 根、`apps/web`、`apps/api` 三份 `AGENTS.md` 已纳入 Git。
+- 根规范明确文件职责、生成契约、并行 Agent 文件所有权、禁止 Maven 生命周期、E2E/外部集成授权边界和证据要求。
+- `.env.example` 提供数据库、Next rewrite 和可选浏览器 API 地址配置。
+- `scripts/dev.ps1` / `scripts/dev.sh` 使用跨平台 Python supervisor 启动 API 与 Web，支持 Ctrl-C 清理。
+- 根 README 包含安装、启动、独立启动、迁移、Seed、测试、OpenAPI 生成和故障排查。
+
+### CI
+
+- `.github/workflows/ci.yml` 包含三个 job：
+  - `api`：Python 3.12、Ruff format/lint、pytest。
+  - `web`：Node 24、test → typecheck → build 串行。
+  - `contract`：重新导出 OpenAPI 和 TypeScript，执行 `git diff --exit-code`。
+- 本地已用 PyYAML 解析 workflow，jobs 为 `api / web / contract`。
+- Windows 环境下 `bash` 入口被 WSL 配置阻断，未能在本机执行 `bash -n scripts/dev.sh`；Linux/macOS 脚本语法需由 CI 或对应平台复核。
+
+### 启动与运行
+
+| 检查 | 结果 |
+|---|---|
+| `.\scripts\dev.ps1` | PASS；自动 Alembic、API 健康等待、Web 启动 |
+| `http://127.0.0.1:3000/` | `200` |
+| `http://127.0.0.1:8000/health` | `200` |
+| 经 Next rewrite 的 `/api/dashboard` | `200`，24 leads / 8 active deals |
+| Ctrl-C 后端口 3000/8000 | 均已释放 |
+
+### 最终本地验证
+
+| 命令 | 结果 |
+|---|---|
+| `uv run --project apps/api ruff format --check apps/api` | PASS；52 files already formatted |
+| `uv run --project apps/api ruff check apps/api` | PASS |
+| `uv run --project apps/api pytest apps/api/tests -q` | PASS；21/21 |
+| `npm --prefix apps/web test` | PASS；2 files，6/6 |
+| `npm --prefix apps/web run typecheck` | PASS |
+| `npm --prefix apps/web run build` | PASS；5 页面路由 |
+| `.github/workflows/ci.yml` 解析 | PASS；api/web/contract |
+
+### 剩余边界
+
+- 未执行浏览器 E2E、Computer Use、负载测试、公网部署、真实外部集成或生产数据库迁移。
+- 原旧库保持不变；Git 仍忽略本地 SQLite、备份和日志。
+- 根目录任务文件 `CRM-Agent-Codex-FastAPI-Monorepo-Task.md` 是用户未跟踪文件，未被删除或修改。
 
 数据库快照：
 

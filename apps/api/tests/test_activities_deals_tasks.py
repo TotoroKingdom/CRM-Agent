@@ -92,6 +92,12 @@ def test_task_filters_completion_restore_and_dashboard_counter(client: TestClien
         task["id"]
     ]
     assert client.get("/api/tasks?filter=done").json()["data"] == []
+    assert [item["id"] for item in client.get("/api/tasks?filter=overdue").json()["data"]] == [
+        task["id"]
+    ]
+    assert [item["id"] for item in client.get("/api/tasks?filter=all").json()["data"]] == [
+        task["id"]
+    ]
 
     completed = client.patch(f"/api/tasks/{task['id']}", json={"completed": True})
     assert completed.status_code == 200
