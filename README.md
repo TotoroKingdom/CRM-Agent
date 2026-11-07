@@ -42,8 +42,10 @@ Linux / macOS：
 ./scripts/dev.sh
 ```
 
-Web：`http://127.0.0.1:3000`  
-API：`http://127.0.0.1:8000`  
+Web：`http://127.0.0.1:3000`
+
+API：`http://127.0.0.1:8000`
+
 API 文档：`http://127.0.0.1:8000/docs`
 
 ## 验证

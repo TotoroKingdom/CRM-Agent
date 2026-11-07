@@ -4,6 +4,8 @@ import { X } from "lucide-react";
 import { useState } from "react";
 import { dealStageLabels } from "@/lib/types";
 import type { Deal, DealStage, Lead } from "@/lib/types";
+import { crmApi } from "@/lib/api/client";
+import type { DealCreate, DealUpdate } from "@/lib/types";
 import { toDateInputValue, toIsoFromDateInput } from "@/lib/format";
 
 export function DealForm({ deal, leads, defaultLeadId, onSaved, onClose }: { deal?: Deal | null; leads: Lead[]; defaultLeadId?: string; onSaved: (deal: Deal) => void; onClose: () => void }) {
@@ -16,9 +18,17 @@ export function DealForm({ deal, leads, defaultLeadId, onSaved, onClose }: { dea
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault(); setSaving(true); setError("");
     try {
-      const response = await fetch(deal ? `/api/deals/${deal.id}` : "/api/deals", { method: deal ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...(deal ? {} : { leadId }), title, amountCents: Math.round(Number(amount) * 100), stage, expectedCloseAt: expectedCloseAt ? toIsoFromDateInput(expectedCloseAt) : null }) });
-      const payload = await response.json() as { data?: Deal; error?: string };
-      if (!response.ok || !payload.data) throw new Error(payload.error ?? "商机保存失败"); onSaved(payload.data);
+      const fields: DealUpdate = {
+        title,
+        amountCents: Math.round(Number(amount) * 100),
+        stage,
+        expectedCloseAt: expectedCloseAt ? toIsoFromDateInput(expectedCloseAt) : null,
+      };
+      if (deal) {
+        onSaved(await crmApi.updateDeal(deal.id, fields));
+      } else {
+        onSaved(await crmApi.createDeal({ ...fields, leadId } as DealCreate));
+      }
     } catch (caught) { setError(caught instanceof Error ? caught.message : "商机保存失败"); }
     finally { setSaving(false); }
   }

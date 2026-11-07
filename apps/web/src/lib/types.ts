@@ -1,76 +1,63 @@
-export const CHANNELS = ["WEBSITE", "SHOPIFY", "AMAZON", "TIKTOK", "REFERRAL", "OTHER"] as const;
-export type Channel = (typeof CHANNELS)[number];
+import type { components } from "@/generated/api";
 
-export const LEAD_STATUSES = ["NEW", "CONTACTED", "QUALIFIED", "DISQUALIFIED"] as const;
-export type LeadStatus = (typeof LEAD_STATUSES)[number];
+type Schemas = components["schemas"];
 
-export const PRIORITIES = ["HIGH", "MEDIUM", "LOW"] as const;
-export type Priority = (typeof PRIORITIES)[number];
+export type Channel = Schemas["Channel"];
+export type LeadStatus = Schemas["LeadStatus"];
+export type Priority = Schemas["Priority"];
+export type DealStage = Schemas["DealStage"];
+export type ActivityType = Schemas["ActivityType"];
+export type TaskFilter = Schemas["TaskFilter"];
 
-export const DEAL_STAGES = ["DISCOVERY", "QUALIFICATION", "PROPOSAL", "NEGOTIATION", "WON", "LOST"] as const;
-export type DealStage = (typeof DEAL_STAGES)[number];
+export type Lead = Schemas["LeadResponse"];
+export type LeadDetails = Schemas["LeadDetailsResponse"];
+export type Deal = Schemas["DealResponse"];
+export type Activity = Schemas["ActivityResponse"];
+export type FollowupTask = Schemas["TaskResponse"];
+export type DashboardData = Schemas["DashboardData"];
 
-export const ACTIVITY_TYPES = ["CALL", "EMAIL", "MESSAGE", "MEETING", "NOTE"] as const;
-export type ActivityType = (typeof ACTIVITY_TYPES)[number];
+export type LeadCreate = Schemas["LeadCreate"];
+export type LeadUpdate = Schemas["LeadUpdate"];
+export type DealCreate = Schemas["DealCreate"];
+export type DealUpdate = Schemas["DealUpdate"];
+export type ActivityCreate = Schemas["ActivityCreate"];
+export type TaskCreate = Schemas["TaskCreate"];
+export type TaskUpdate = Schemas["TaskUpdate"];
 
-export type Lead = {
-  id: string;
-  name: string;
-  company: string;
-  email: string | null;
-  phone: string | null;
-  channel: Channel;
-  status: LeadStatus;
-  priority: Priority;
-  country: string | null;
-  note: string | null;
-  createdAt: string;
-  updatedAt: string;
-  dealCount?: number;
-  openTaskCount?: number;
-};
+export const CHANNELS = [
+  "WEBSITE",
+  "SHOPIFY",
+  "AMAZON",
+  "TIKTOK",
+  "REFERRAL",
+  "OTHER",
+] as const satisfies readonly Channel[];
 
-export type Deal = {
-  id: string;
-  leadId: string;
-  leadName?: string;
-  company?: string;
-  title: string;
-  amountCents: number;
-  stage: DealStage;
-  expectedCloseAt: string | null;
-  createdAt: string;
-  updatedAt: string;
-};
+export const LEAD_STATUSES = [
+  "NEW",
+  "CONTACTED",
+  "QUALIFIED",
+  "DISQUALIFIED",
+] as const satisfies readonly LeadStatus[];
 
-export type Activity = {
-  id: string;
-  leadId: string;
-  leadName?: string;
-  company?: string;
-  type: ActivityType;
-  content: string;
-  occurredAt: string;
-  createdAt: string;
-};
+export const PRIORITIES = ["HIGH", "MEDIUM", "LOW"] as const satisfies readonly Priority[];
 
-export type FollowupTask = {
-  id: string;
-  leadId: string;
-  leadName?: string;
-  company?: string;
-  title: string;
-  dueAt: string;
-  completedAt: string | null;
-  createdAt: string;
-  updatedAt: string;
-};
+export const DEAL_STAGES = [
+  "DISCOVERY",
+  "QUALIFICATION",
+  "PROPOSAL",
+  "NEGOTIATION",
+  "WON",
+  "LOST",
+] as const satisfies readonly DealStage[];
 
-export type LeadDetails = Lead & {
-  activities: Activity[];
-  deals: Deal[];
-  tasks: FollowupTask[];
-};
+export const ACTIVITY_TYPES = [
+  "CALL",
+  "EMAIL",
+  "MESSAGE",
+  "MEETING",
+  "NOTE",
+] as const satisfies readonly ActivityType[];
 
 export const channelLabels: Record<Channel, string> = {
   WEBSITE: "官网",

@@ -1,5 +1,5 @@
 {
-  "name": "crm-overnight-mvp",
+  "name": "@crm/web",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -13,20 +13,19 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "db:seed": "tsx scripts/seed.ts"
+    "generate:api": "openapi-typescript ../api/openapi.json -o src/generated/api.ts"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
     "next": "^16.4.5",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "zod": "^4.6.7"
+    "react-dom": "^19.2.0"
   },
   "devDependencies": {
     "@types/node": "^24.10.0",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
-    "tsx": "^4.20.6",
+    "openapi-typescript": "^7.10.0",
     "typescript": "^5.9.3",
     "vitest": "^5.1.0"
   }

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { activityTypeLabels } from "@/lib/types";
 import type { Activity, ActivityType } from "@/lib/types";
 import { toDateTimeInputValue, toIsoFromDateTimeInput } from "@/lib/format";
+import { crmApi } from "@/lib/api/client";
 
 export function ActivityForm({ leadId, onSaved, onClose }: { leadId: string; onSaved: (activity: Activity) => void; onClose: () => void }) {
   const [type, setType] = useState<ActivityType>("NOTE");
@@ -15,10 +16,11 @@ export function ActivityForm({ leadId, onSaved, onClose }: { leadId: string; onS
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault(); setSaving(true); setError("");
     try {
-      const response = await fetch(`/api/leads/${leadId}/activities`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type, content, occurredAt: toIsoFromDateTimeInput(occurredAt) }) });
-      const payload = await response.json() as { data?: Activity; error?: string };
-      if (!response.ok || !payload.data) throw new Error(payload.error ?? "互动记录保存失败");
-      onSaved(payload.data);
+      onSaved(await crmApi.createActivity(leadId, {
+        type,
+        content,
+        occurredAt: toIsoFromDateTimeInput(occurredAt),
+      }));
     } catch (caught) { setError(caught instanceof Error ? caught.message : "互动记录保存失败"); }
     finally { setSaving(false); }
   }

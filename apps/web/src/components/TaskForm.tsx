@@ -3,6 +3,8 @@
 import { X } from "lucide-react";
 import { useState } from "react";
 import type { FollowupTask, Lead } from "@/lib/types";
+import { crmApi } from "@/lib/api/client";
+import type { TaskCreate, TaskUpdate } from "@/lib/types";
 import { toDateInputValue, toIsoFromDateInput } from "@/lib/format";
 
 export function TaskForm({ task, leads, defaultLeadId, onSaved, onClose }: { task?: FollowupTask | null; leads: Lead[]; defaultLeadId?: string; onSaved: (task: FollowupTask) => void; onClose: () => void }) {
@@ -13,9 +15,10 @@ export function TaskForm({ task, leads, defaultLeadId, onSaved, onClose }: { tas
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault(); setSaving(true); setError("");
     try {
-      const response = await fetch(task ? `/api/tasks/${task.id}` : "/api/tasks", { method: task ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(task ? { title, dueAt: toIsoFromDateInput(dueAt) } : { leadId, title, dueAt: toIsoFromDateInput(dueAt) }) });
-      const payload = await response.json() as { data?: FollowupTask; error?: string };
-      if (!response.ok || !payload.data) throw new Error(payload.error ?? "任务保存失败"); onSaved(payload.data);
+      const fields: TaskUpdate = { title, dueAt: toIsoFromDateInput(dueAt) };
+      onSaved(task
+        ? await crmApi.updateTask(task.id, fields)
+        : await crmApi.createTask({ ...fields, leadId } as TaskCreate));
     } catch (caught) { setError(caught instanceof Error ? caught.message : "任务保存失败"); }
     finally { setSaving(false); }
   }

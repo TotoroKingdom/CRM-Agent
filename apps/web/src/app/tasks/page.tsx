@@ -4,6 +4,7 @@ import { CalendarPlus, Check, Clock3, Edit3, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { TaskForm } from "@/components/TaskForm";
 import { formatDate, formatDateTime } from "@/lib/format";
+import { crmApi } from "@/lib/api/client";
 import type { FollowupTask, Lead } from "@/lib/types";
 
 type Filter = "open" | "done" | "overdue" | "all";
@@ -19,18 +20,21 @@ export default function TasksPage() {
 
   async function load() {
     try {
-      const [taskResponse, leadResponse] = await Promise.all([fetch(`/api/tasks?filter=${filter}`, { cache: "no-store" }), fetch("/api/leads", { cache: "no-store" })]);
-      const taskPayload = await taskResponse.json() as { data?: FollowupTask[]; error?: string }; const leadPayload = await leadResponse.json() as { data?: Lead[]; error?: string };
-      if (!taskResponse.ok || !taskPayload.data) throw new Error(taskPayload.error ?? "任务加载失败"); if (!leadResponse.ok || !leadPayload.data) throw new Error(leadPayload.error ?? "客户加载失败");
-      setTasks(taskPayload.data); setLeads(leadPayload.data);
+      const [taskData, leadData] = await Promise.all([crmApi.listTasks(filter), crmApi.listLeads()]);
+      setTasks(taskData); setLeads(leadData);
     } catch (caught) { setError(caught instanceof Error ? caught.message : "任务加载失败"); }
   }
   useEffect(() => { void load(); }, [filter]);
   useEffect(() => { if (toast) { const timer = window.setTimeout(() => setToast(""), 2600); return () => window.clearTimeout(timer); } }, [toast]);
 
   async function toggle(task: FollowupTask) {
-    const response = await fetch(`/api/tasks/${task.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ completed: !task.completedAt }) }); const payload = await response.json() as { data?: FollowupTask; error?: string };
-    if (!response.ok || !payload.data) { setError(payload.error ?? "更新任务失败"); return; } setToast(payload.data.completedAt ? "任务已完成" : "任务已恢复待办"); void load();
+    try {
+      const updated = await crmApi.updateTask(task.id, { completed: !task.completedAt });
+      setToast(updated.completedAt ? "任务已完成" : "任务已恢复待办");
+      void load();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "更新任务失败");
+    }
   }
   function saved(message: string) { setModalOpen(false); setEditing(null); setToast(message); void load(); }
 

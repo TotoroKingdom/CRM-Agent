@@ -10,7 +10,7 @@
 |---|---|---|
 | G0 审计与契约基线 | PASS | 旧测试/类型检查/构建与 HTTP 契约已采集；数据库未修改 |
 | G1 Monorepo 骨架与前端迁移 | PASS | Next 页面/资源无损迁移；FastAPI 健康检查通过 |
-| G2 FastAPI 完整替换 | PENDING | |
+| G2 FastAPI 完整替换 | PASS | 八组 API、Alembic、前端 client、类型生成与本机构建已验证 |
 | G3 数据保全、Seed 与业务闭环 | PENDING | |
 | G4 规范、交付与 PR | PENDING | |
 
@@ -59,6 +59,39 @@
 | `GET /openapi.json` | `200`，title 为 `CrossFlow CRM API` |
 
 此时 Next 旧 Route Handlers 仍保留，作为 G2 删除前的回退路径；浏览器尚未切换到 FastAPI。
+
+## G2 证据
+
+### 后端
+
+- SQLAlchemy 2 ORM 实现四张表、CHECK 约束、外键级联和索引。
+- 分层为 `api/routes`、`schemas`、`services`、`repositories`、`models`、`db`。
+- Pydantic v2 使用 camelCase alias；请求错误由全局处理器统一映射为 `400 + error + fields`。
+- PATCH 使用 `exclude_unset` / `model_fields_set` 语义，显式 `null` 可以清空可空字段。
+- `Alembic` 初始迁移位于 `apps/api/alembic/versions/aff88cb2ab30_initial_crm_schema.py`。
+- 测试使用临时 SQLite，不访问 `data/crm.sqlite` 或旧库。
+
+| 命令 | 结果 |
+|---|---|
+| `uv run --project apps/api pytest apps/api/tests -q` | PASS；17/17 |
+| `uv run --project apps/api ruff check apps/api` | PASS |
+| OpenAPI 导出 | PASS；9 条路径（8 API + health） |
+| Alembic upgrade/downgrade/upgrade | PASS |
+
+### 前端
+
+- 删除全部 Next Route Handlers、`src/lib/db`、Zod 服务端校验和 `node:sqlite` 依赖。
+- `next.config.ts` 将同源 `/api/*` 代理到 `API_INTERNAL_URL`，默认 `http://127.0.0.1:8000`。
+- `apps/web/src/generated/api.ts` 由 `openapi-typescript` 从 `apps/api/openapi.json` 生成。
+- 页面统一通过 `src/lib/api/client.ts` 访问 API；错误保留 `message/status/fields`。
+- 页面和样式未重构，只替换数据访问代码和过时的 SQLite 技术文案。
+
+| 命令 | 结果 |
+|---|---|
+| `npm test`（`apps/web`） | PASS；2 files，6/6 tests |
+| `npm run typecheck` | PASS |
+| `npm run build` | PASS；仅 5 个页面路由，无 Next API route |
+| `npm run generate:api` | PASS；openapi-typescript 7.13.0 |
 
 数据库快照：
 
