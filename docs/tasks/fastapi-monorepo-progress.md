@@ -11,7 +11,7 @@
 | G0 审计与契约基线 | PASS | 旧测试/类型检查/构建与 HTTP 契约已采集；数据库未修改 |
 | G1 Monorepo 骨架与前端迁移 | PASS | Next 页面/资源无损迁移；FastAPI 健康检查通过 |
 | G2 FastAPI 完整替换 | PASS | 八组 API、Alembic、前端 client、类型生成与本机构建已验证 |
-| G3 数据保全、Seed 与业务闭环 | PENDING | |
+| G3 数据保全、Seed 与业务闭环 | PASS | 旧库副本迁移、逐行校验、回滚、显式 Seed 和 API 闭环已实测 |
 | G4 规范、交付与 PR | PENDING | |
 
 状态含义：`PASS` 表示有本机实测证据；`PARTIAL` 表示部分路径未验证；`BLOCKED` 表示环境或权限阻塞；不得把未执行项目写成通过。
@@ -92,6 +92,57 @@
 | `npm run typecheck` | PASS |
 | `npm run build` | PASS；仅 5 个页面路由，无 Next API route |
 | `npm run generate:api` | PASS；openapi-typescript 7.13.0 |
+
+## G3 证据
+
+### 旧库迁移
+
+- 源：`crm-overnight-mvp/data/crm.sqlite`。
+- 目标：`data/crm.sqlite`。
+- 源 SHA-256 迁移前后均为：`4f264eac4173674905dda14e0953656125b00bb6d53ba296428121e1823293b7`。
+- 自动备份：`data/backups/crm-20261107T101443Z-c05e5293.sqlite`。
+- manifest 记录源/备份/目标哈希、条数、Alembic revision 和验证范围。
+- 目标计数：24 leads、10 deals、20 activities、12 followup_tasks。
+- 四张表完整行集合与旧库逐值一致。
+- 目标 `integrity_check=ok`、`foreign_key_check=[]`、revision `aff88cb2ab30`。
+- 旧原库保留在原路径，未删除、未覆盖。
+
+### 回滚
+
+- 使用真实备份恢复到独立验证文件 `.dev/rollback-verification.sqlite`。
+- 备份与回滚目标 SHA-256 均为 `076408a1b3b3a5a37408eaef284016a18850127743204c51cfe24779f09e4512`。
+- 回滚后四张表逐行等于旧原库，条数 24/10/20/12。
+
+### 全新库与 Seed
+
+- 在 `.dev/fresh-g3.sqlite` 从空文件执行 Alembic upgrade。
+- 首次显式 Seed：`{"leads":24,"deals":10,"activities":20,"tasks":12}`。
+- 第二次 Seed：`seeded=false`，计数不变。
+- 正常应用启动不执行 Seed。
+
+### API 业务闭环
+
+后端 pytest 覆盖：
+
+- Shopify 虚构客户 → 电话互动 → 50,000 元商机 → `PROPOSAL` → 任务完成 → Dashboard 统计变化。
+- 连接关闭并重新创建应用后仍可读回数据。
+- 删除线索级联删除商机、互动和任务。
+- 非法 JSON/字段/枚举为 400，缺失线索/商机/任务为 404。
+
+本轮后端结果：`21/21` passed，Ruff clean。
+
+### 本机 HTTP 集成
+
+FastAPI 使用迁移后的 `data/crm.sqlite`，Next.js 以 `API_INTERNAL_URL=http://127.0.0.1:8000` 启动：
+
+- `GET http://127.0.0.1:3000/api/dashboard`：`200`，24 / 8 / 121600000 / 1 / 2。
+- `GET http://127.0.0.1:3000/api/leads`：`200`，24 条。
+- 线索详情：`200`，关联数组可读。
+- 非法筛选经 Next rewrite：`400` 旧错误结构。
+- 缺失线索经 Next rewrite：`404 {"error":"线索不存在"}`。
+- 页面 `/`、`/leads`、`/pipeline`、`/tasks` 本地 HTTP 均为 `200`。
+
+未执行浏览器点击、Playwright、Computer Use；因此不宣称浏览器人工验收通过。
 
 数据库快照：
 
