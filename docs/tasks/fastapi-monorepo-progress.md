@@ -12,7 +12,7 @@
 | G1 Monorepo 骨架与前端迁移 | PASS | Next 页面/资源无损迁移；FastAPI 健康检查通过 |
 | G2 FastAPI 完整替换 | PASS | 八组 API、Alembic、前端 client、类型生成与本机构建已验证 |
 | G3 数据保全、Seed 与业务闭环 | PASS | 旧库副本迁移、逐行校验、回滚、显式 Seed 和 API 闭环已实测 |
-| G4 规范、交付与 PR | IN_PROGRESS | 本地规范、CI 配置和启动验证完成；等待推送、PR 与远端 CI 结果 |
+| G4 规范、交付与 PR | PASS | 已推送并创建 PR #1；GitHub Actions 三 job 全部成功 |
 
 状态含义：`PASS` 表示有本机实测证据；`PARTIAL` 表示部分路径未验证；`BLOCKED` 表示环境或权限阻塞；不得把未执行项目写成通过。
 
@@ -34,6 +34,23 @@
 - `GET /api/leads/not-there`：`404`，`{"error":"线索不存在"}`。
 - `POST /api/leads` 非法 JSON：`400`，`{"error":"请求内容不是有效 JSON"}`。
 - 未执行写请求；用户数据库未被修改。
+
+数据库快照：
+
+- 路径：`crm-overnight-mvp/data/crm.sqlite`。
+- 大小：81920 bytes。
+- SHA-256：`4f264eac4173674905dda14e0953656125b00bb6d53ba296428121e1823293b7`。G3 迁移前后重新测量并比对。
+- 表：`leads`、`deals`、`activities`、`followup_tasks`。
+- 条数：24 / 10 / 20 / 12。
+- `PRAGMA integrity_check`：`ok`。
+- `PRAGMA foreign_key_check`：空。
+- 用户库被 `.gitignore` 忽略，不进入提交。
+
+工作区保护：
+
+- 开始时 `main` 的已跟踪文件干净。
+- 未跟踪内容：`.idea/`、`CRM-Agent-Codex-FastAPI-Monorepo-Task.md`、旧开发日志。
+- 不删除、不覆盖、不提交 IDE 配置；旧 SQLite 始终保留在原路径，迁移只读取原库并在新路径创建经校验的副本。
 
 ## G1 证据
 
@@ -162,6 +179,8 @@ FastAPI 使用迁移后的 `data/crm.sqlite`，Next.js 以 `API_INTERNAL_URL=htt
   - `contract`：重新导出 OpenAPI 和 TypeScript，执行 `git diff --exit-code`。
 - 本地已用 PyYAML 解析 workflow，jobs 为 `api / web / contract`。
 - Windows 环境下 `bash` 入口被 WSL 配置阻断，未能在本机执行 `bash -n scripts/dev.sh`；Linux/macOS 脚本语法需由 CI 或对应平台复核。
+- GitHub Actions run `42363736789`：`api`、`web`、`contract` 全部 `completed/success`。
+- 同 commit 的另一条 push run `42363714746` 也全部成功。
 
 ### 启动与运行
 
@@ -191,28 +210,6 @@ FastAPI 使用迁移后的 `data/crm.sqlite`，Next.js 以 `API_INTERNAL_URL=htt
 - 原旧库保持不变；Git 仍忽略本地 SQLite、备份和日志。
 - 根目录任务文件 `CRM-Agent-Codex-FastAPI-Monorepo-Task.md` 是用户未跟踪文件，未被删除或修改。
 
-数据库快照：
-
-- 路径：`crm-overnight-mvp/data/crm.sqlite`。
-- 大小：81920 bytes。
-- SHA-256：`4f264eac4173674905dda14e0953656125b00bb6d53ba296428121e1823293b7`。G3 迁移前后重新测量并比对。
-- 表：`leads`、`deals`、`activities`、`followup_tasks`。
-- 条数：24 / 10 / 20 / 12。
-- `PRAGMA integrity_check`：`ok`。
-- `PRAGMA foreign_key_check`：空。
-- 用户库被 `.gitignore` 忽略，不进入提交。
-
-## 工作区保护
-
-开始时 `main` 的已跟踪文件干净，存在以下未跟踪内容：
-
-- `.idea/`
-- `CRM-Agent-Codex-FastAPI-Monorepo-Task.md`
-- `crm-overnight-mvp/dev-20261107-173917.err.log`
-- `crm-overnight-mvp/dev-20261107-173917.out.log`
-
-处理原则：不删除、不覆盖、不提交 IDE 配置；旧 SQLite 始终保留在原路径，迁移只读取原库并在新路径创建经校验的副本。
-
 ## 已知风险
 
 | 风险 | 缓解 |
@@ -225,6 +222,21 @@ FastAPI 使用迁移后的 `data/crm.sqlite`，Next.js 以 `API_INTERNAL_URL=htt
 | 原数据库被误改 | 迁移脚本只读 source；先备份；目标存在时默认拒绝 |
 | Python 3.12 环境缺失 | 使用仓库内 `uv` 管理虚拟环境，CI 固定 Python 3.12 |
 
-## 计划提交
+## Gate 提交
 
-每个 Gate 至少一个可解释的 commit。最终 PR 指向 `main`，不自动合并。
+| Gate | Commit |
+|---|---|
+| G0 审计与契约基线 | `53c0b91` |
+| G1 Monorepo 骨架与前端迁移 | `88d05b1` |
+| G2 FastAPI 完整替换 | `aa50407` |
+| G3 数据保全、Seed 与业务闭环 | `ea6c2ec` |
+| G4 规范、CI 与交付 | `292fd70` 及本次文档收口提交 |
+
+## PR
+
+- 仓库：`TotoroKingdom/CRM-Agent`
+- 分支：`refactor/fastapi-monorepo`
+- PR：#1
+- URL：https://github.com/TotoroKingdom/CRM-Agent/pull/1
+- 当前状态：open，未自动合并
+- CI：`api`、`web`、`contract` 全部成功
