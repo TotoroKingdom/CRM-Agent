@@ -1,0 +1,37 @@
+# JavaScript / Next.js
+node_modules/
+**/node_modules/
+.next/
+**/.next/
+next-env.d.ts
+out/
+*.tsbuildinfo
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+**/.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# Local data and backups (never commit CRM databases)
+data/
+**/data/
+crm-overnight-mvp/
+
+# Local runtime output
+.dev/
+*.log
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

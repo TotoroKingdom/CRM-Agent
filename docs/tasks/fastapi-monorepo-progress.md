@@ -9,7 +9,7 @@
 | Gate | 状态 | 说明 |
 |---|---|---|
 | G0 审计与契约基线 | PASS | 旧测试/类型检查/构建与 HTTP 契约已采集；数据库未修改 |
-| G1 Monorepo 骨架与前端迁移 | PENDING | |
+| G1 Monorepo 骨架与前端迁移 | PASS | Next 页面/资源无损迁移；FastAPI 健康检查通过 |
 | G2 FastAPI 完整替换 | PENDING | |
 | G3 数据保全、Seed 与业务闭环 | PENDING | |
 | G4 规范、交付与 PR | PENDING | |
@@ -34,6 +34,31 @@
 - `GET /api/leads/not-there`：`404`，`{"error":"线索不存在"}`。
 - `POST /api/leads` 非法 JSON：`400`，`{"error":"请求内容不是有效 JSON"}`。
 - 未执行写请求；用户数据库未被修改。
+
+## G1 证据
+
+- 使用 `git mv` 将 Next.js 页面、组件、样式、测试和配置迁移到 `apps/web`。
+- 原 README、PROGRESS、FINAL_REPORT 归档到 `docs/archive/legacy-crm/`，保留历史记录。
+- 旧 SQLite 数据目录和日志仍在 `crm-overnight-mvp/` 原路径，未删除、未修改。
+- 建立根 `.gitignore`，不再忽略 `AGENTS.md`；忽略 Node/Python 产物、本地数据库、日志和 IDE 文件。
+- 建立根、`apps/web`、`apps/api` 三份 `AGENTS.md`，以及根 README 和初始开发脚本。
+- 使用 `uv` 创建 Python 3.12.13 虚拟环境；FastAPI 最小骨架提供 `/health` 与 `/openapi.json`。
+
+本 Gate 实测：
+
+| 命令/检查 | 结果 |
+|---|---|
+| `npm ci`（`apps/web`） | PASS；63 packages |
+| `npm test` | PASS；3 files，10/10 tests |
+| `npm run typecheck` | PASS |
+| `npm run build` | PASS；Next.js 16.4.5 |
+| `uv sync --project apps/api --python 3.12` | PASS；Python 3.12.13 |
+| `uv run --project apps/api pytest apps/api/tests` | PASS；1/1 |
+| `uv run --project apps/api ruff check apps/api` | PASS |
+| 独立启动 uvicorn 后 `GET /health` | `200 {"status":"ok"}` |
+| `GET /openapi.json` | `200`，title 为 `CrossFlow CRM API` |
+
+此时 Next 旧 Route Handlers 仍保留，作为 G2 删除前的回退路径；浏览器尚未切换到 FastAPI。
 
 数据库快照：
 
